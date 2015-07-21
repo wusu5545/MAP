@@ -194,12 +194,16 @@ std::vector<MyRect> detectObjects( MyImage* _img, MySize minSize, MySize maxSize
       int size_per_filter = 18;
       int* gpu_cascade;
       cudaMalloc((void**) &gpu_cascade, filter_count*size_per_filter*sizeof(int));
+      cudaMemcpy(gpu_cascade,cascade,sizeof(gpu_cascade),cudaMemcpyHostToDevice);
+      int* gpu_factor;
+      cudaMalloc((void**) &gpu_factor,sizeof(float));
+      cudaMemcpy(gpu_factor,&factor,sizeof(float),cudaMemcpyHostToDevice);
       /* To do: you need to memcpy filter parameters to GPU */
       /* To do: your GPU function here */
       dim3 threads = dim3(64, 1);
       dim3 grid = dim3(filter_count/64, 1);
-      gpu_function_1<<< grid, threads >>>();
-      gpu_function_2<<< grid, threads >>>();
+      setImageForCascadeClassifier<<< grid, threads >>>();
+      ScaleImage_Invoker<<< grid, threads >>>();
       /* and more functions */
       /* free GPU memory */
       cudaFree(gpu_cascade);
