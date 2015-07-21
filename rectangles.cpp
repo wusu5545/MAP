@@ -216,7 +216,7 @@ void drawRectangle(MyImage* image, MyRect r)
 
 	for (i = 0; i < r.width; i++)
 	{
-      image->data[col*r.y + r.x + i] = 255;
+		image->data[col*r.y + r.x + i] = 255;
 	}
 	for (i = 0; i < r.height; i++)
 	{
