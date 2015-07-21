@@ -1,36 +1,3 @@
-/*
- *  TU Eindhoven
- *  Eindhoven, The Netherlands
- *
- *  Name            :   haar.cpp
- *
- *  Author          :   Francesco Comaschi (f.comaschi@tue.nl)
- *
- *  Date            :   November 12, 2012
- *
- *  Function        :   Haar features evaluation for face detection
- *
- *  History         :
- *      12-11-12    :   Initial version.
- *
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program;  If not, see <http://www.gnu.org/licenses/>
- *
- * In other words, you are welcome to use, share and improve this program.
- * You are forbidden to forbid anyone else to use, share and improve
- * what you give them.   Happy coding!
- */
-
 #include "haar.h"
 #include "image.h"
 #include <stdio.h>
@@ -216,7 +183,7 @@ std::vector<MyRect> detectObjects( MyImage* _img, MySize minSize, MySize maxSize
 			 allCandidates);
 
       /*********************************************
-       * For the 5kk73 assignment,
+       * For the GPU assignment,
        * here is a skeleton
        ********************************************/
       /* malloc cascade filter on GPU memory*/
@@ -506,7 +473,7 @@ int runCascadeClassifier( myCascade* _cascade, MyPoint pt, int start_stage )
        * Otherwise, a face is detected (1)
        **************************************************************/
 
-      /* the number "0.4" is empirically chosen for 5kk73 */
+      /* the number "0.4" is empirically chosen for GPU */
       if( stage_sum < 0.4*stages_thresh_array[i] ){
 	return -i;
       } /* end of the per-stage thresholding */
@@ -547,11 +514,11 @@ void ScaleImage_Invoker( myCascade* _cascade, float _factor, int sum_row, int su
    * example:
    * step = factor > 2 ? 1 : 2;
    * 
-   * For 5kk73, 
+   * For GPU, 
    * the factor and step can be kept constant,
    * unless you want to change input image.
    *
-   * The step size is set to 1 for 5kk73,
+   * The step size is set to 1 for GPU,
    * i.e., shift the filter window by 1 pixel.
    *******************************************/	
   step = 1;
@@ -696,7 +663,7 @@ void readTextClassifier()//(myCascade * cascade)
   /**************************************************
   /* how many stages are in the cascaded filter? 
   /* the first line of info.txt is the number of stages 
-  /* (in the 5kk73 example, there are 25 stages)
+  /* (in the example, there are 25 stages)
   **************************************************/
   if ( fgets (mystring , 12 , finfo) != NULL )
     {
@@ -710,7 +677,7 @@ void readTextClassifier()//(myCascade * cascade)
    * how many filters in each stage? 
    * They are specified in info.txt,
    * starting from second line.
-   * (in the 5kk73 example, from line 2 to line 26)
+   * (in the example, from line 2 to line 26)
    *************************************************/
   while ( fgets (mystring , 12 , finfo) != NULL )
     {
@@ -743,7 +710,7 @@ void readTextClassifier()//(myCascade * cascade)
    * 18 parameter per filter x tilter per stage
    * + 1 threshold per stage
    *
-   * For example, in 5kk73, 
+   * For example, in GPU, 
    * the first stage has 9 filters,
    * the first stage is specified using
    * 18 * 9 + 1 = 163 parameters
