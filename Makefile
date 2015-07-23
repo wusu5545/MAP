@@ -115,7 +115,7 @@ endif
 
 
 # Common includes and paths for CUDA
-INCLUDES      := -I$(CUDA_INC_PATH) -I. -I.. -I../../common/inc
+INCLUDES      := -I $(CUDA_INC_PATH) -I. -I.. -I../../common/inc
 
 HEADERS := stdio-wrapper.h image.h haar.h
 

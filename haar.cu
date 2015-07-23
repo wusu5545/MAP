@@ -2,6 +2,7 @@
 #include "image.h"
 #include <stdio.h>
 #include "stdio-wrapper.h"
+#include "iostream"
 
 /* include the gpu functions */
 #include "gpu_functions.cuh"
@@ -616,39 +617,66 @@ void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
 void nearestNeighbor (MyImage *src, MyImage *dst)
 {
 
-  int y;
-  int j;
-  int x;
-  int i;
-  unsigned char* t;
-  unsigned char* p;
+//   int y;
+//   int j;
+//   int x;
+//   int i;
+//   unsigned char* t;
+//   unsigned char* p;
   int w1 = src->width;
   int h1 = src->height;
   int w2 = dst->width;
   int h2 = dst->height;
 
-  int rat = 0;
+//   int rat = 0;
 
-  unsigned char* src_data = src->data;
-  unsigned char* dst_data = dst->data;
+//   unsigned char* src_data = src->data;
+//   unsigned char* dst_data = dst->data;
 
 
   int x_ratio = (int)((w1<<16)/w2) +1;
   int y_ratio = (int)((h1<<16)/h2) +1;
+  
+//   int gpu_x_ratio,gpu_y_ratio;
+//   cudaMalloc((void**)&gpu_x_ratio,sizeof(int));
+//   cudaMemcpy(&gpu_x_ratio,&x_ratio,sizeof(int),cudaMemcpyHostToDevice);
+//   cudaMalloc((void**)&gpu_y_ratio,sizeof(int));
+//   cudaMemcpy(&gpu_y_ratio,&y_ratio,sizeof(int),cudaMemcpyHostToDevice);
+  
+  unsigned char * gpu_src;
+  unsigned char * gpu_dst;
+  
+  cudaMalloc((void**)&gpu_src,w1*h1*sizeof(unsigned char));
+  cudaMemcpy(gpu_src,src->data,w1*h1*sizeof(unsigned char),cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&gpu_dst,w2*h2*sizeof(unsigned char));
+  cudaMemcpy(gpu_dst,dst->data,w2*h2*sizeof(unsigned char),cudaMemcpyHostToDevice);
+  
+//   int gpu_src_w,gpu_dst_w;
+//   gpu_src_w = w1;
+//   gpu_src_w = w2;
+  
+  dim3 threads = dim3(w2, 1,1);
+  dim3 grid = dim3(h2, 1,1);
+  
+  ScaleImage_Kernel<<< h2, w2 >>>(gpu_src,gpu_dst,w1,w2,
+					 x_ratio,y_ratio);
+  
+  cudaMemcpy(dst->data,gpu_dst,w2*h2*sizeof(unsigned char),cudaMemcpyDeviceToHost);
 
-  for (i=0;i<h2;i++)
-    {
-      t = dst_data + i*w2;
-      y = ((i*y_ratio)>>16);
-      p = src_data + y*w1;
-      rat = 0;
-      for (j=0;j<w2;j++)
-	{
-	  x = (rat>>16);
-	  *t++ = p[x];
-	  rat += x_ratio;
-	}
-    }
+//   for (i=0;i<h2;i++)
+//     {
+//       t = dst_data + i*w2;
+//       y = ((i*y_ratio)>>16);
+//       p = src_data + y*w1;
+//       rat = 0;
+//       for (j=0;j<w2;j++)
+// 	{
+// 	  x = (rat>>16);
+// 	  *t++ = p[x];
+// 	  rat += x_ratio;
+// 	}
+//     }
+    std::cout<<int(w2)<<std::endl;
 }
 
 void readTextClassifier()//(myCascade * cascade)
