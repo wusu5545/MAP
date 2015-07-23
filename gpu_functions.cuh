@@ -1,9 +1,9 @@
 __global__ void
-gpu_function_1(){
+setImageForCascadeClassifier(){
 
 }
 
 __global__ void
-gpu_function_2(){
+ScaleImage_Invoker(){
 
 }
