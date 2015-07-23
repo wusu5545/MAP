@@ -203,8 +203,8 @@ std::vector<MyRect> detectObjects( MyImage* _img, MySize minSize, MySize maxSize
       /* To do: your GPU function here */
       dim3 threads = dim3(64, 1);
       dim3 grid = dim3(filter_count/64, 1);
-      setImageForCascadeClassifier<<< grid, threads >>>();
-      ScaleImage_Invoker<<< grid, threads >>>();
+//       setImageForCascadeClassifier<<< grid, threads >>>();
+//       ScaleImage_Invoker<<< grid, threads >>>();
       /* and more functions */
       /* free GPU memory */
       cudaFree(gpu_cascade);
@@ -578,36 +578,63 @@ void ScaleImage_Invoker( myCascade* _cascade, float _factor, int sum_row, int su
  ****************************************************/
 void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
 {
-  int x, y, s, sq, t, tq;
-  unsigned char it;
+//   int x, y, s, sq, t, tq;
+//   unsigned char it;
   int height = src->height;
   int width = src->width;
-  unsigned char *data = src->data;
-  int * sumData = sum->data;
-  int * sqsumData = sqsum->data;
-  for( y = 0; y < height; y++)
-    {
-      s = 0;
-      sq = 0;
-      /* loop over the number of columns */
-      for( x = 0; x < width; x ++)
-	{
-	  it = data[y*width+x];
-	  /* sum of the current row (integer)*/
-	  s += it; 
-	  sq += it*it;
-
-	  t = s;
-	  tq = sq;
-	  if (y != 0)
-	    {
-	      t += sumData[(y-1)*width+x];
-	      tq += sqsumData[(y-1)*width+x];
-	    }
-	  sumData[y*width+x]=t;
-	  sqsumData[y*width+x]=tq;
-	}
-    }
+//   unsigned char *data = src->data;
+//   int * sumData = sum->data;
+//   int * sqsumData = sqsum->data;
+  
+  unsigned char * gpu_src;
+  int * gpu_sumData;
+  int * gpu_sqsumData;
+  
+  cudaMalloc((void**)&gpu_src,height*width*sizeof(unsigned char));
+  cudaMemcpy(gpu_src,src->data,height*width*sizeof(unsigned char),cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&gpu_sumData,height*width*sizeof(int));
+  cudaMemcpy(gpu_sumData,sum->data,height*width*sizeof(int),cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&gpu_sqsumData,height*width*sizeof(int));
+  cudaMemcpy(gpu_sqsumData,sqsum->data,height*width*sizeof(int),cudaMemcpyHostToDevice);
+  
+  
+  dim3 threads = dim3(width, 1,1);
+  dim3 grid = dim3(height, 1,1);
+  
+  IntergralImages_row_Kernel<<< 1, width >>>(gpu_src,gpu_sumData,gpu_sqsumData,
+					      height,width);
+  IntergralImages_col_Kernel<<< 1, height>>>(gpu_sumData,gpu_sqsumData,
+					      width);
+  
+  cudaMemcpy(sum->data,gpu_sumData,height*width*sizeof(int),cudaMemcpyDeviceToHost);
+  cudaMemcpy(sqsum->data,gpu_sqsumData,height*width*sizeof(int),cudaMemcpyDeviceToHost);
+  cudaFree(gpu_sumData);
+  cudaFree(gpu_src);
+  cudaFree(gpu_sqsumData);
+//   for( y = 0; y < height; y++)
+//     {
+//       s = 0;
+//       sq = 0;
+//       /* loop over the number of columns */
+//       for( x = 0; x < width; x ++)
+// 	{
+// 	  it = data[y*width+x];
+// 	  /* sum of the current row (integer)*/
+// 	  s += it; 
+// 	  sq += it*it;
+// 
+// 	  t = s;
+// 	  tq = sq;
+// 	  if (y != 0)
+// 	    {
+// 	      t += sumData[(y-1)*width+x];
+// 	      tq += sqsumData[(y-1)*width+x];
+// 	    }
+// 	  sumData[y*width+x]=t;
+// 	  sqsumData[y*width+x]=tq;
+// 	}
+//     }
+//     std::cout<<sumData[2*width-1]<<std::endl;
 }
 
 /***********************************************************
@@ -662,6 +689,9 @@ void nearestNeighbor (MyImage *src, MyImage *dst)
 					 x_ratio,y_ratio);
   
   cudaMemcpy(dst->data,gpu_dst,w2*h2*sizeof(unsigned char),cudaMemcpyDeviceToHost);
+  
+  cudaFree(gpu_dst);
+  cudaFree(gpu_src);
 
 //   for (i=0;i<h2;i++)
 //     {
@@ -676,7 +706,7 @@ void nearestNeighbor (MyImage *src, MyImage *dst)
 // 	  rat += x_ratio;
 // 	}
 //     }
-    std::cout<<int(w2)<<std::endl;
+//     std::cout<<int(w2)<<std::endl;
 }
 
 void readTextClassifier()//(myCascade * cascade)
