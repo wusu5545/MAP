@@ -2,6 +2,7 @@
 #include "image.h"
 #include <stdio.h>
 #include "stdio-wrapper.h"
+#include "iostream"
 
 /* include the gpu functions */
 #include "gpu_functions.cuh"
@@ -635,6 +636,32 @@ void nearestNeighbor (MyImage *src, MyImage *dst)
 
   int x_ratio = (int)((w1<<16)/w2) +1;
   int y_ratio = (int)((h1<<16)/h2) +1;
+  
+//   int gpu_x_ratio,gpu_y_ratio;
+//   cudaMalloc((void**)&gpu_x_ratio,sizeof(int));
+//   cudaMemcpy(&gpu_x_ratio,&x_ratio,sizeof(int),cudaMemcpyHostToDevice);
+//   cudaMalloc((void**)&gpu_y_ratio,sizeof(int));
+//   cudaMemcpy(&gpu_y_ratio,&y_ratio,sizeof(int),cudaMemcpyHostToDevice);
+  
+  unsigned char * gpu_src;
+  unsigned char * gpu_dst;
+  
+  cudaMalloc((void**)&gpu_src,w1*h1*sizeof(unsigned char));
+  cudaMemcpy(gpu_src,src->data,w1*h1*sizeof(unsigned char),cudaMemcpyHostToDevice);
+  cudaMalloc((void**)&gpu_dst,w2*h2*sizeof(unsigned char));
+  cudaMemcpy(gpu_dst,dst->data,w2*h2*sizeof(unsigned char),cudaMemcpyHostToDevice);
+  
+//   int gpu_src_w,gpu_dst_w;
+//   gpu_src_w = w1;
+//   gpu_src_w = w2;
+  
+  dim3 threads = dim3(w2, h2);
+  dim3 grid = dim3(1, 1);
+  std::cout<<int(src_data[w1])<<std::endl;
+  ScaleImage_Kernel<<< grid, threads >>>(gpu_src,gpu_dst,w1,w2,
+					 x_ratio,y_ratio);
+  
+  cudaMemcpy(dst->data,gpu_dst,w2*h2*sizeof(unsigned char),cudaMemcpyDeviceToHost);
 
   for (i=0;i<h2;i++)
     {
