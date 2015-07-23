@@ -24,6 +24,8 @@ static int *tree_thresh_array;
 static int *stages_thresh_array;
 static int **scaled_rectangles_array;
 
+int * gpu_scaled_rectangles_array;
+
 
 int clock_counter = 0;
 float n_features = 0;
@@ -351,7 +353,7 @@ void setImageForCascadeClassifier( myCascade* _cascade, MyIntImage* _sum, MyIntI
  ***************************************************/
 inline int evalWeakClassifier(int variance_norm_factor, int p_offset, int tree_index, int w_index, int r_index )
 {
-
+  
   /* the node threshold is multiplied by the standard deviation of the image */
   int t = tree_thresh_array[tree_index] * variance_norm_factor;
 
