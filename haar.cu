@@ -580,13 +580,8 @@ void ScaleImage_Invoker( myCascade* _cascade, float _factor, int sum_row, int su
  ****************************************************/
 void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
 {
-//   int x, y, s, sq, t, tq;
-//   unsigned char it;
   int height = src->height;
   int width = src->width;
-//   unsigned char *data = src->data;
-//   int * sumData = sum->data;
-//   int * sqsumData = sqsum->data;
   
   unsigned char * gpu_src;
   int * gpu_sumData;
@@ -599,10 +594,6 @@ void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
   cudaMalloc((void**)&gpu_sqsumData,height*width*sizeof(int));
   cudaMemcpy(gpu_sqsumData,sqsum->data,height*width*sizeof(int),cudaMemcpyHostToDevice);
   
-  
-  dim3 threads = dim3(width, 1,1);
-  dim3 grid = dim3(height, 1,1);
-  
   IntergralImages_row_Kernel<<< 1, width >>>(gpu_src,gpu_sumData,gpu_sqsumData,
 					      height,width);
   IntergralImages_col_Kernel<<< 1, height>>>(gpu_sumData,gpu_sqsumData,
@@ -613,30 +604,6 @@ void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
   cudaFree(gpu_sumData);
   cudaFree(gpu_src);
   cudaFree(gpu_sqsumData);
-//   for( y = 0; y < height; y++)
-//     {
-//       s = 0;
-//       sq = 0;
-//       /* loop over the number of columns */
-//       for( x = 0; x < width; x ++)
-// 	{
-// 	  it = data[y*width+x];
-// 	  /* sum of the current row (integer)*/
-// 	  s += it; 
-// 	  sq += it*it;
-// 
-// 	  t = s;
-// 	  tq = sq;
-// 	  if (y != 0)
-// 	    {
-// 	      t += sumData[(y-1)*width+x];
-// 	      tq += sqsumData[(y-1)*width+x];
-// 	    }
-// 	  sumData[y*width+x]=t;
-// 	  sqsumData[y*width+x]=tq;
-// 	}
-//     }
-//     std::cout<<sumData[2*width-1]<<std::endl;
 }
 
 /***********************************************************
@@ -645,32 +612,13 @@ void integralImages( MyImage *src, MyIntImage *sum, MyIntImage *sqsum )
  **********************************************************/
 void nearestNeighbor (MyImage *src, MyImage *dst)
 {
-
-//   int y;
-//   int j;
-//   int x;
-//   int i;
-//   unsigned char* t;
-//   unsigned char* p;
   int w1 = src->width;
   int h1 = src->height;
   int w2 = dst->width;
   int h2 = dst->height;
 
-//   int rat = 0;
-
-//   unsigned char* src_data = src->data;
-//   unsigned char* dst_data = dst->data;
-
-
   int x_ratio = (int)((w1<<16)/w2) +1;
   int y_ratio = (int)((h1<<16)/h2) +1;
-  
-//   int gpu_x_ratio,gpu_y_ratio;
-//   cudaMalloc((void**)&gpu_x_ratio,sizeof(int));
-//   cudaMemcpy(&gpu_x_ratio,&x_ratio,sizeof(int),cudaMemcpyHostToDevice);
-//   cudaMalloc((void**)&gpu_y_ratio,sizeof(int));
-//   cudaMemcpy(&gpu_y_ratio,&y_ratio,sizeof(int),cudaMemcpyHostToDevice);
   
   unsigned char * gpu_src;
   unsigned char * gpu_dst;
@@ -680,13 +628,6 @@ void nearestNeighbor (MyImage *src, MyImage *dst)
   cudaMalloc((void**)&gpu_dst,w2*h2*sizeof(unsigned char));
   cudaMemcpy(gpu_dst,dst->data,w2*h2*sizeof(unsigned char),cudaMemcpyHostToDevice);
   
-//   int gpu_src_w,gpu_dst_w;
-//   gpu_src_w = w1;
-//   gpu_src_w = w2;
-  
-  dim3 threads = dim3(w2, 1,1);
-  dim3 grid = dim3(h2, 1,1);
-  
   ScaleImage_Kernel<<< h2, w2 >>>(gpu_src,gpu_dst,w1,w2,
 					 x_ratio,y_ratio);
   
@@ -694,21 +635,6 @@ void nearestNeighbor (MyImage *src, MyImage *dst)
   
   cudaFree(gpu_dst);
   cudaFree(gpu_src);
-
-//   for (i=0;i<h2;i++)
-//     {
-//       t = dst_data + i*w2;
-//       y = ((i*y_ratio)>>16);
-//       p = src_data + y*w1;
-//       rat = 0;
-//       for (j=0;j<w2;j++)
-// 	{
-// 	  x = (rat>>16);
-// 	  *t++ = p[x];
-// 	  rat += x_ratio;
-// 	}
-//     }
-//     std::cout<<int(w2)<<std::endl;
 }
 
 void readTextClassifier()//(myCascade * cascade)
